@@ -15,3 +15,4 @@
 15. Implements a CI/CD pipeline. Github actions? Other? Document it
 16. Studing how to manage scaling and implemt it. Document it
 17. Test entire project starting from scratch following the documentation
+18. Write project presentation.
