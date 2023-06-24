@@ -8,7 +8,7 @@ write_files:
     permission: "0644"
     content: |
       PORT=8080
-      DB_CONNECTION_STRING="mongodb://${user}:${password}@${hostname}:${port}/${database}}"
+      DB_CONNECTION_STRING="mongodb://${user}:${password}@${hostname}:${port}/?ssl=true&sslCAFile=/etc/ssl/certs/docdb-conn.pem"
   - path: /etc/systemd/system/phoenix.service
     owner: root:root
     permission: "0644"
@@ -27,7 +27,7 @@ write_files:
       User=nobody
       Group=nobody
       Environment=PORT=8080
-      Environment=DB_CONNECTION_STRING="mongodb://${user}:${password}@${hostname}:${port}/${database}}"
+      Environment=DB_CONNECTION_STRING="mongodb://${user}:${password}@${hostname}:${port}/?ssl=true&sslCAFile=/etc/ssl/certs/docdb-conn.pem"
       [Install]
       WantedBy=multi-user.target
       
@@ -36,22 +36,17 @@ write_files:
 runcmd:
   - |
     echo
-    touch ${user}
-    touch ${password}
-    echo "*** Setting environment variables globally"
-    echo "*** TODO - set only for the user that launch application"
     source /etc/environment
     echo "*** install nodejs"
     curl -sL https://rpm.nodesource.com/setup_14.x | bash -
     yum -y install npm
-    cd /root
-    touch yes.txt
-    cd /home/ec2-user
-    touch 2.txt 
     mkdir /var/www/
     cd /var/www
     git clone https://github.com/claranet-ch/cloud-phoenix-kata
     cd /var/www/cloud-phoenix-kata
     npm install
+    echo "*** retrive ssl certificate for documentDB connection"
+    curl -o /etc/ssl/certs/docdb-conn.pem https://truststore.pki.rds.amazonaws.com/eu-central-1/eu-central-1-bundle.pem
+    chmod 644 /etc/ssl/certs/docdb-conn.pem
 
 

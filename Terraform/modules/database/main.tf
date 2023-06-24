@@ -3,6 +3,10 @@ locals {
   db_name   = "pppdb"
 }
 
+# Retrieve the current AWS region.
+data "aws_region" "current" {
+}
+
 # Create an AWS database subnet group
 resource "aws_db_subnet_group" "db_subnet" {
   name       = "${var.namespace}-${var.project_name}-group"
