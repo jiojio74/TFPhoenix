@@ -7,3 +7,13 @@ output "db_config" {
     port     = aws_db_instance.database.port
   }
 }
+
+output "docdb_config" {
+  value = {
+    user     = aws_docdb_cluster.main.master_username
+    password = aws_docdb_cluster.main.master_password
+    hostname = aws_docdb_cluster.main.endpoint
+    arn      = aws_docdb_cluster.main.arn
+    port     = aws_docdb_cluster.main.port
+  }
+}
