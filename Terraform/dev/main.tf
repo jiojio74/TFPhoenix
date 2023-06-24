@@ -1,13 +1,13 @@
 # Define the "network" module, which sets up the network resources.
 module "network" {
-  source       = "./modules/network"
+  source       = "../modules/network"
   namespace    = var.namespace
   project_name = var.project_name
 }
 
 # Define the "instance" module, which sets up the instance resources.
 module "instance" {
-  source       = "./modules/instance"
+  source       = "../modules/instance"
   namespace    = var.namespace
   project_name = var.project_name
   ssh_key      = var.ssh_key
@@ -19,7 +19,7 @@ module "instance" {
 
 # Define the "database" module, which sets up the database resources.
 module "database" {
-  source             = "./modules/database"
+  source             = "../modules/database"
   namespace          = var.namespace
   project_name       = var.project_name
   vpc                = module.network.vpc
