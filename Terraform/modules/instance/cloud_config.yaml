@@ -65,7 +65,8 @@ runcmd:
     chmod 644 /etc/ssl/certs/docdb-conn.pem
     echo "*** add execute to launching script"
     chmod +x /usr/local/bin/startphoenix.sh
-    echo "*** enable service"
+    echo "*** enable and start app service"
     systemctl enable phoenix.service
+    systemctl start phoenix.service
 
 
