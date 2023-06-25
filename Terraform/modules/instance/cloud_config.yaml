@@ -1,38 +1,53 @@
+# install packages used in runcmd
 packages:
   - curl
   - git
 
 write_files:
+  # Set the environment variables globally to manually test the service startup. 
   - path: /etc/environment
     owner: root:root
     permission: "0644"
     content: |
       PORT=8080
       DB_CONNECTION_STRING="mongodb://${user}:${password}@${hostname}:${port}/?ssl=true&sslCAFile=/etc/ssl/certs/docdb-conn.pem"
+
+  # Create the startup script for the service.
+  # note: seem that adding execute permission doesn't work. Added to runcmd
+  - path: /usr/local/bin/startphoenix.sh
+    owner: root:root
+    permission: "0755"
+    content: |
+      #!/bin/bash
+      cd /var/www/cloud-phoenix-kata
+      export PORT=8080
+      export DB_CONNECTION_STRING="mongodb://${user}:${password}@${hostname}:${port}/?ssl=true&sslCAFile=/etc/ssl/certs/docdb-conn.pem"
+      npm start
+  # Create the service
   - path: /etc/systemd/system/phoenix.service
     owner: root:root
     permission: "0644"
     content: |
       [Unit]
       Description=Phoenix Application
+      After=network.target
       [Service]
       # Start Service
       WorkingDirectory=/var/www/cloud-phoenix-kata
-      ExecStart=/usr/bin/npm start
-      RestartSec=10
+      ExecStart=/usr/local/bin/startphoenix.sh
+      RestartSec=2
       Restart=on-failure
       StandardOutput=syslog
       StandardError=syslog
-      SyslogIdentifier=nodejs-phoenix-application
+      SyslogIdentifier=phoenix-application
       User=nobody
       Group=nobody
-      Environment=PORT=8080
-      Environment=DB_CONNECTION_STRING="mongodb://${user}:${password}@${hostname}:${port}/?ssl=true&sslCAFile=/etc/ssl/certs/docdb-conn.pem"
       [Install]
       WantedBy=multi-user.target
       
 
-
+# install nodejs, clone the project, install, retrive certs for the documentDB connection, set permission for the launching script
+# ToDo: make zone independent, pass code URL
 runcmd:
   - |
     echo
@@ -48,5 +63,9 @@ runcmd:
     echo "*** retrive ssl certificate for documentDB connection"
     curl -o /etc/ssl/certs/docdb-conn.pem https://truststore.pki.rds.amazonaws.com/eu-central-1/eu-central-1-bundle.pem
     chmod 644 /etc/ssl/certs/docdb-conn.pem
+    echo "*** add execute to launching script"
+    chmod +x /usr/local/bin/startphoenix.sh
+    echo "*** enable service"
+    systemctl enable phoenix.service
 
 
