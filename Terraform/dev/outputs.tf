@@ -7,10 +7,6 @@ output "database" {
   sensitive = true
 }
 
-output "documentDB" {
-  value     = module.database.docdb_config
-}
-
 output "alb" {
   value = module.network.alb.lb.dns_name
 }

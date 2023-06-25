@@ -34,8 +34,8 @@ variable "db_config" {
   type = object( {
     user     = string
     password = string
-    database = string
     hostname = string
     port     = number
+    region   = string
   })
 }
