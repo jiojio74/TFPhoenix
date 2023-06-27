@@ -30,12 +30,15 @@ variable "vpc" {
   type = any
 }
 
+variable "mail" {
+  type = string
+}
+
 variable "db_config" {
   type = object( {
     user     = string
     password = string
     hostname = string
     port     = number
-    region   = string
   })
 }

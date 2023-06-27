@@ -1,3 +1,8 @@
+# Retrieve the current AWS region.
+data "aws_region" "current" {
+}
+
+
 data "aws_ami" "amazon_linux" {
   most_recent = true
   filter {
@@ -65,7 +70,11 @@ data "cloudinit_config" "httpserver" {
   base64_encode = true
   part {
     content_type = "text/cloud-config"
-    content      = templatefile("${path.module}/cloud_config.yaml", var.db_config )
+    content      = templatefile("${path.module}/cloud_config.yaml", {
+      db_config = var.db_config,
+      region   = data.aws_region.current.name
+      }
+    )
   }
 }
 
@@ -81,10 +90,46 @@ resource "aws_launch_template" "server" {
   key_name               = aws_key_pair.ssh.key_name
   user_data              = data.cloudinit_config.httpserver.rendered
   vpc_security_group_ids = [aws_security_group.instance.id]
+  iam_instance_profile {
+    name = aws_iam_instance_profile.cloudwatch_logs.name
+  }
   lifecycle {
     create_before_destroy = true
   }
+
 }
+
+# needed for the cloudwatch agent to send log from inside instance
+resource "aws_iam_instance_profile" "cloudwatch_logs" {
+  name = "${var.namespace}-${var.project_name}-cloudwatch-logs"
+  role = aws_iam_role.cloudwatch_logs.name
+}
+
+resource "aws_iam_role" "cloudwatch_logs" {
+  name = "${var.namespace}-${var.project_name}-cloudwatch-logs"
+
+  assume_role_policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "",
+      "Effect": "Allow",
+      "Principal": {
+        "Service": "ec2.amazonaws.com"
+      },
+      "Action": "sts:AssumeRole"
+    }
+  ]
+}
+EOF
+}
+
+resource "aws_iam_role_policy_attachment" "cloudwatch_logs_policy_attachment" {
+  role       = aws_iam_role.cloudwatch_logs.name
+  policy_arn = "arn:aws:iam::aws:policy/CloudWatchLogsFullAccess" 
+}
+
 
 resource "aws_autoscaling_group" "server" {
   name                = "${var.namespace}-${var.project_name}-asg"
@@ -123,9 +168,9 @@ resource "aws_cloudwatch_metric_alarm" "scale" {
   alarm_name          = "${var.namespace}-${var.project_name}-scale"
   comparison_operator = "GreaterThanOrEqualToThreshold"
   evaluation_periods  = 1
-  period              = 60
+  period              = 10
   metric_name         = "CPUUtilization"
-  threshold           = 80
+  threshold           = 40
   statistic           = "Average"
   alarm_actions       = [aws_autoscaling_policy.scaling_up.arn]
   ok_actions          = [aws_autoscaling_policy.scaling_down.arn]
@@ -134,3 +179,23 @@ resource "aws_cloudwatch_metric_alarm" "scale" {
     AutoScalingGroupName = aws_autoscaling_group.server.name
   }
 }
+
+# Sending notification for CPU peak
+
+resource "aws_cloudwatch_metric_alarm" "cpu_usage_alarm" {
+  alarm_name          = "${var.namespace}-${var.project_name}-cpu-usage-alarm"
+  comparison_operator = "GreaterThanOrEqualToThreshold"
+  evaluation_periods  = 1
+  period              = 10
+  metric_name         = "CPUUtilization"
+  namespace           = "AWS/EC2"
+  threshold           = 40
+  alarm_description   = "High CPU usage alarm"
+  #alarm_actions       = [aws_sns_topic.cpu_usage_topic.arn]
+
+  dimensions = {
+    AutoScalingGroupName = aws_autoscaling_group.server.name
+  }
+  statistic = "Average"
+}
+

@@ -2,6 +2,8 @@
 packages:
   - curl
   - git
+  - amazon-cloudwatch-agent
+  - collectd
 
 write_files:
   # Set the environment variables globally to manually test the service startup. 
@@ -10,7 +12,7 @@ write_files:
     permission: "0644"
     content: |
       PORT=8080
-      DB_CONNECTION_STRING="mongodb://${user}:${password}@${hostname}:${port}/?ssl=true&sslCAFile=/etc/ssl/certs/docdb-conn.pem"
+      DB_CONNECTION_STRING="mongodb://${db_config.user}:${db_config.password}@${db_config.hostname}:${db_config.port}/?ssl=true&sslCAFile=/etc/ssl/certs/docdb-conn.pem"
 
   # Create the startup script for the service.
   # note: seem that adding execute permission doesn't work. Added to runcmd
@@ -21,7 +23,7 @@ write_files:
       #!/bin/bash
       cd /var/www/cloud-phoenix-kata
       export PORT=8080
-      export DB_CONNECTION_STRING="mongodb://${user}:${password}@${hostname}:${port}/?ssl=true&sslCAFile=/etc/ssl/certs/docdb-conn.pem"
+      export DB_CONNECTION_STRING="mongodb://${db_config.user}:${db_config.password}@${db_config.hostname}:${db_config.port}/?ssl=true&sslCAFile=/etc/ssl/certs/docdb-conn.pem"
       npm start
   # Create the service
   - path: /etc/systemd/system/phoenix.service
@@ -44,10 +46,35 @@ write_files:
       Group=nobody
       [Install]
       WantedBy=multi-user.target
+  # Create aws cloudwatch agent configuration for collecting messages
+  - path: /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json
+    owner: root:root
+    permission: "0644"
+    content: |
+      {
+          "agent": {
+                  "metrics_collection_interval": 10,
+                  "run_as_user": "root"
+          },
       
+          "logs": {
+                  "logs_collected": {
+                          "files": {
+                                  "collect_list": [
+                                          {
+                                                  "file_path": "/var/log/messages",
+                                                  "log_group_name": "messages",
+                                                  "log_stream_name": "{instance_id}",
+                                                  "retention_in_days": 7
+                                          }
+                                  ]
+                          }
+                  }
+          }
+      }
 
 # install nodejs, clone the project, install, retrive certs for the documentDB connection, set permission for the launching script
-# ToDo: make zone independent, pass code URL
+
 runcmd:
   - |
     echo
@@ -61,8 +88,13 @@ runcmd:
     cd /var/www/cloud-phoenix-kata
     npm install
     echo "*** retrive ssl certificate for documentDB connection"
-    curl -o /etc/ssl/certs/docdb-conn.pem https://truststore.pki.rds.amazonaws.com/eu-central-1/eu-central-1-bundle.pem
+    curl -o /etc/ssl/certs/docdb-conn.pem https://truststore.pki.rds.amazonaws.com/${region}/${region}-bundle.pem
     chmod 644 /etc/ssl/certs/docdb-conn.pem
+    # echo "*** install collectd"
+    # amazon-linux-extras install collectd -y
+    echo "activate and start cloudwatch agent"
+    systemctl enable amazon-cloudwatch-agent.service
+    systemctl start amazon-cloudwatch-agent.service
     echo "*** add execute to launching script"
     chmod +x /usr/local/bin/startphoenix.sh
     echo "*** enable and start app service"

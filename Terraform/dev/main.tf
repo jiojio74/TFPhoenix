@@ -11,6 +11,7 @@ module "instance" {
   namespace    = var.namespace
   project_name = var.project_name
   ssh_key      = var.ssh_key
+  mail         = var.notification_email
   alb          = module.network.alb
   subnet       = module.network.subnet
   vpc          = module.network.vpc

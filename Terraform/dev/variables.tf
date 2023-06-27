@@ -23,3 +23,8 @@ variable "app_source_url" {
   description = "URL of the Node.js application source"
   type        = string
 }
+
+variable "notification_email" {
+  description = "Mail to send notifications"
+  type        = string
+}
