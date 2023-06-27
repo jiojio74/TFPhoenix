@@ -1,8 +1,3 @@
-# Retrieve the current AWS region.
-data "aws_region" "current" {
-}
-
-
 # **** Implementing DocumentDB as mongoDB
 
 locals {
