@@ -1,3 +1,4 @@
+# variable passed from the caller
 variable "namespace" {
   type = string
 }
