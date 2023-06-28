@@ -1,9 +1,11 @@
 # **** Implementing DocumentDB as mongoDB
 
+#username for DocumentDB
 locals {
   user_name = "dbuser"
 }
 
+# Create subnet group for documentDB cluster
 resource "aws_docdb_subnet_group" "docdb_subnet" {
   name       = "${var.namespace}-${var.project_name}-docdb-group"
   subnet_ids = [
@@ -12,6 +14,7 @@ resource "aws_docdb_subnet_group" "docdb_subnet" {
   ]
 }
 
+# Create sg and permit ingress only from port 27017 and app sg
 resource "aws_security_group" "database_docdb" {
   name        = "${var.namespace}-${var.project_name}-docdb"
   description = "Allow traffic to database 2"
@@ -34,11 +37,13 @@ resource "aws_security_group" "database_docdb" {
   }
 }
 
+# Generate a random password for the DocumnetDB
 resource "random_password" "password_2" {
   length  = 16
   special = false
 }
 
+# Define documentDB with a backup retention of seven days
 resource "aws_docdb_cluster" "main" {
   cluster_identifier      = "${var.namespace}-${var.project_name}-docdb-cluster"
   engine                  = "docdb"
@@ -55,6 +60,7 @@ resource "aws_docdb_cluster" "main" {
   ]
 }
 
+# Create the single node of DocumentDB
 resource "aws_docdb_cluster_instance" "default" {
   count              = "1"
   identifier         = "${var.namespace}-${var.project_name}-docdb-cluster-${count.index + 1}"

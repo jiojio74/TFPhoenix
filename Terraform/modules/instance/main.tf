@@ -2,17 +2,17 @@
 data "aws_region" "current" {
 }
 
-
+# Using Amazon Linux 2 so I can install cloudagent from the repository
 data "aws_ami" "amazon_linux" {
   most_recent = true
   filter {
     name   = "name"
-    # values = ["amzn2-ami-kernel-5.10-hvm-2.0.*-x86_64-gp2"]
     values = ["amzn2-ami-hvm-2.0.*-ebs"]
   }
   owners = ["amazon"]
 }
 
+# Create load balancer target group, anable communication on port 8080 and enable health check
 resource "aws_lb_target_group" "target-group" {
   name     = "${var.namespace}-${var.project_name}-tg"
   protocol = "HTTP"
@@ -25,6 +25,7 @@ resource "aws_lb_target_group" "target-group" {
   }
 }
 
+# Create listener on port 80 
 resource "aws_lb_listener" "listener" {
   load_balancer_arn = var.alb.lb.arn
   port              = 80
@@ -35,6 +36,7 @@ resource "aws_lb_listener" "listener" {
   }
 }
 
+# Create sg for the instances permitting port 8080 only from load balancer, port 22 from everywhere
 resource "aws_security_group" "instance" {
   name        = "${var.namespace}-${var.project_name}-app"
   description = "Allow traffic to application"
@@ -65,6 +67,7 @@ resource "aws_security_group" "instance" {
 
 }
 
+# Set cloudinit from template file
 data "cloudinit_config" "httpserver" {
   gzip          = true
   base64_encode = true
@@ -79,11 +82,13 @@ data "cloudinit_config" "httpserver" {
   }
 }
 
+# set ssh key
 resource "aws_key_pair" "ssh" {
   public_key = var.ssh_key
   key_name   = "ssh"
 }
 
+# set template for the instances that load balancer create
 resource "aws_launch_template" "server" {
   name_prefix            = "${var.namespace}-${var.project_name}"
   image_id               = data.aws_ami.amazon_linux.id
@@ -131,7 +136,7 @@ resource "aws_iam_role_policy_attachment" "cloudwatch_logs_policy_attachment" {
   policy_arn = "arn:aws:iam::aws:policy/CloudWatchLogsFullAccess" 
 }
 
-
+# create autoscaling group 
 resource "aws_autoscaling_group" "server" {
   name                = "${var.namespace}-${var.project_name}-asg"
   max_size            = 2
@@ -149,6 +154,7 @@ resource "aws_autoscaling_group" "server" {
   }
 }
 
+# example of autoscaling up 
 resource "aws_autoscaling_policy" "scaling_up" {
   name                   = "${var.namespace}-${var.project_name}-scale_up"
   autoscaling_group_name = aws_autoscaling_group.server.name
@@ -157,6 +163,7 @@ resource "aws_autoscaling_policy" "scaling_up" {
   scaling_adjustment     = 1
 }
 
+# example of autoscaling down
 resource "aws_autoscaling_policy" "scaling_down" {
   name                   = "${var.namespace}-${var.project_name}-scale_down"
   autoscaling_group_name = aws_autoscaling_group.server.name
@@ -165,6 +172,7 @@ resource "aws_autoscaling_policy" "scaling_down" {
   scaling_adjustment     = -1
 }
 
+# ToDo: change condition to scale up when the number of request are greater than 100 req /min
 resource "aws_cloudwatch_metric_alarm" "scale" {
   alarm_name          = "${var.namespace}-${var.project_name}-scale"
   comparison_operator = "GreaterThanOrEqualToThreshold"
@@ -182,7 +190,6 @@ resource "aws_cloudwatch_metric_alarm" "scale" {
 }
 
 # Sending notification for CPU peak
-
 resource "aws_cloudwatch_metric_alarm" "cpu_usage_alarm" {
   alarm_name          = "${var.namespace}-${var.project_name}-cpu-usage-alarm"
   comparison_operator = "GreaterThanOrEqualToThreshold"
@@ -190,7 +197,7 @@ resource "aws_cloudwatch_metric_alarm" "cpu_usage_alarm" {
   period              = 10
   metric_name         = "CPUUtilization"
   namespace           = "AWS/EC2"
-  threshold           = 40
+  threshold           = 80
   alarm_description   = "High CPU usage alarm"
 
   dimensions = {

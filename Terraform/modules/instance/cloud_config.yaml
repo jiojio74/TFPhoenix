@@ -73,15 +73,20 @@ write_files:
           }
       }
 
-# install nodejs, clone the project, install, retrive certs for the documentDB connection, set permission for the launching script
+# Enable and strt cloudwatch agent, install nodejs, clone the project,
+# install, retrive certs for the documentDB connection, set permission for the launching script
 
 runcmd:
   - |
     echo
+    echo "activate and start cloudwatch agent"
+    systemctl enable amazon-cloudwatch-agent.service
+    systemctl start amazon-cloudwatch-agent.service
     source /etc/environment
     echo "*** install nodejs"
     curl -sL https://rpm.nodesource.com/setup_14.x | bash -
     yum -y install npm
+    echo "*** install app"
     mkdir /var/www/
     cd /var/www
     git clone ${app_url} app
@@ -90,11 +95,6 @@ runcmd:
     echo "*** retrive ssl certificate for documentDB connection"
     curl -o /etc/ssl/certs/docdb-conn.pem https://truststore.pki.rds.amazonaws.com/${region}/${region}-bundle.pem
     chmod 644 /etc/ssl/certs/docdb-conn.pem
-    # echo "*** install collectd"
-    # amazon-linux-extras install collectd -y
-    echo "activate and start cloudwatch agent"
-    systemctl enable amazon-cloudwatch-agent.service
-    systemctl start amazon-cloudwatch-agent.service
     echo "*** add execute to launching script"
     chmod +x /usr/local/bin/startphoenix.sh
     echo "*** enable and start app service"
