@@ -1,0 +1,10 @@
+# Project namespace [dev,staging,production]
+namespace    = "dev"
+# AWS Region
+region       = "eu-central-1"
+# The name of the project
+project_name = "tfphoenix"
+# Public key for EC2 ssh login
+ssh_key      = ""
+# URL of the Node.js application source
+app_url      = "https://github.com/claranet-ch/cloud-phoenix-kata"

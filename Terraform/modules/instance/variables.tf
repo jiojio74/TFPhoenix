@@ -30,10 +30,6 @@ variable "vpc" {
   type = any
 }
 
-variable "mail" {
-  type = string
-}
-
 variable "db_config" {
   type = object( {
     user     = string
@@ -41,4 +37,9 @@ variable "db_config" {
     hostname = string
     port     = number
   })
+}
+
+variable "app_url" {
+  description = "URL of the Node.js application source"
+  type        = string
 }

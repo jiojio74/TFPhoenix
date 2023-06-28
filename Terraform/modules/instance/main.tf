@@ -71,8 +71,9 @@ data "cloudinit_config" "httpserver" {
   part {
     content_type = "text/cloud-config"
     content      = templatefile("${path.module}/cloud_config.yaml", {
-      db_config = var.db_config,
-      region   = data.aws_region.current.name
+      db_config  = var.db_config,
+      region     = data.aws_region.current.name,
+      app_url    = var.app_url
       }
     )
   }
@@ -99,7 +100,7 @@ resource "aws_launch_template" "server" {
 
 }
 
-# needed for the cloudwatch agent to send log from inside instance
+# iam instance profile needed for the cloudwatch agent to send log from inside instance
 resource "aws_iam_instance_profile" "cloudwatch_logs" {
   name = "${var.namespace}-${var.project_name}-cloudwatch-logs"
   role = aws_iam_role.cloudwatch_logs.name
@@ -191,7 +192,6 @@ resource "aws_cloudwatch_metric_alarm" "cpu_usage_alarm" {
   namespace           = "AWS/EC2"
   threshold           = 40
   alarm_description   = "High CPU usage alarm"
-  #alarm_actions       = [aws_sns_topic.cpu_usage_topic.arn]
 
   dimensions = {
     AutoScalingGroupName = aws_autoscaling_group.server.name

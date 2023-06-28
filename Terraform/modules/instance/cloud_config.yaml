@@ -21,7 +21,7 @@ write_files:
     permission: "0755"
     content: |
       #!/bin/bash
-      cd /var/www/cloud-phoenix-kata
+      cd /var/www/app
       export PORT=8080
       export DB_CONNECTION_STRING="mongodb://${db_config.user}:${db_config.password}@${db_config.hostname}:${db_config.port}/?ssl=true&sslCAFile=/etc/ssl/certs/docdb-conn.pem"
       npm start
@@ -35,7 +35,7 @@ write_files:
       After=network.target
       [Service]
       # Start Service
-      WorkingDirectory=/var/www/cloud-phoenix-kata
+      WorkingDirectory=/var/www/app
       ExecStart=/usr/local/bin/startphoenix.sh
       RestartSec=2
       Restart=on-failure
@@ -84,8 +84,8 @@ runcmd:
     yum -y install npm
     mkdir /var/www/
     cd /var/www
-    git clone https://github.com/claranet-ch/cloud-phoenix-kata
-    cd /var/www/cloud-phoenix-kata
+    git clone ${app_url} app
+    cd /var/www/app
     npm install
     echo "*** retrive ssl certificate for documentDB connection"
     curl -o /etc/ssl/certs/docdb-conn.pem https://truststore.pki.rds.amazonaws.com/${region}/${region}-bundle.pem

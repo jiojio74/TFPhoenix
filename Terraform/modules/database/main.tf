@@ -44,8 +44,7 @@ resource "aws_docdb_cluster" "main" {
   engine                  = "docdb"
   port                    = 27017
   master_username         = local.user_name
-  # master_password         = random_password.password_2.result
-  master_password         = "Spippola21!"
+  master_password         = random_password.password_2.result
   backup_retention_period = "7"
   preferred_backup_window = "01:00-03:00"
   storage_encrypted       = true

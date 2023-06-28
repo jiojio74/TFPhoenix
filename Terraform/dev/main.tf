@@ -11,11 +11,11 @@ module "instance" {
   namespace    = var.namespace
   project_name = var.project_name
   ssh_key      = var.ssh_key
-  mail         = var.notification_email
   alb          = module.network.alb
   subnet       = module.network.subnet
   vpc          = module.network.vpc
   db_config    = module.database.db_config
+  app_url      = var.app_url
 }
 
 # Define the "database" module, which sets up the database resources.
