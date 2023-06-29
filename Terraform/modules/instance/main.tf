@@ -12,7 +12,7 @@ data "aws_ami" "amazon_linux" {
   owners = ["amazon"]
 }
 
-# Create load balancer target group, anable communication on port 8080 and enable health check
+# Create load balancer target group, enable communication on port 8080 and enable health check
 resource "aws_lb_target_group" "target-group" {
   name     = "${var.namespace}-${var.project_name}-tg"
   protocol = "HTTP"
