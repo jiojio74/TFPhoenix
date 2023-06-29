@@ -21,4 +21,3 @@ variable "subnet" {
     private_b = any
   })
 }
-

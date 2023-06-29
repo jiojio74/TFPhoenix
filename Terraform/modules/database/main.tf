@@ -58,9 +58,6 @@ resource "aws_docdb_cluster" "main" {
   vpc_security_group_ids  = [
     aws_security_group.database_docdb.id,
   ]
-    lifecycle {
-    prevent_destroy = var.namespace == "production"
-  }
 }
 
 # Create the single node of DocumentDB
