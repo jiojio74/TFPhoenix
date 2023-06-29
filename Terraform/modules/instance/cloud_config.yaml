@@ -63,7 +63,7 @@ write_files:
                                   "collect_list": [
                                           {
                                                   "file_path": "/var/log/messages",
-                                                  "log_group_name": "messages",
+                                                  "log_group_name": "${namespace}_${project_name}_logs",
                                                   "log_stream_name": "{instance_id}",
                                                   "retention_in_days": 7
                                           }

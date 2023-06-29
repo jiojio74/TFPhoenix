@@ -73,10 +73,12 @@ data "cloudinit_config" "httpserver" {
   base64_encode = true
   part {
     content_type = "text/cloud-config"
-    content      = templatefile("${path.module}/cloud_config.yaml", {
-      db_config  = var.db_config,
-      region     = data.aws_region.current.name,
-      app_url    = var.app_url
+    content        = templatefile("${path.module}/cloud_config.yaml", {
+      db_config    = var.db_config,
+      region       = data.aws_region.current.name,
+      app_url      = var.app_url
+      namespace    = var.namespace
+      project_name = var.project_name
       }
     )
   }
