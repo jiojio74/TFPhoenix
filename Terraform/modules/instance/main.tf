@@ -156,6 +156,7 @@ resource "aws_autoscaling_group" "server" {
   }
 }
 
+
 # example of autoscaling up 
 resource "aws_autoscaling_policy" "scaling_up" {
   name                   = "${var.namespace}-${var.project_name}-scale_up"
@@ -179,19 +180,20 @@ resource "aws_cloudwatch_metric_alarm" "scale" {
   alarm_name          = "${var.namespace}-${var.project_name}-scale"
   comparison_operator = "GreaterThanOrEqualToThreshold"
   evaluation_periods  = 1
-  period              = 10
-  metric_name         = "CPUUtilization"
-  threshold           = 40
-  statistic           = "Average"
+  period              = 60
+  metric_name         = "RequestCount"
+  threshold           = 10
+  statistic           = "Sum"
+  namespace           = "AWS/ApplicationELB"
   alarm_actions       = [aws_autoscaling_policy.scaling_up.arn]
   ok_actions          = [aws_autoscaling_policy.scaling_down.arn]
-  namespace           = "AWS/EC2"
   dimensions          = {
-    AutoScalingGroupName = aws_autoscaling_group.server.name
+#    AutoScalingGroupName = aws_autoscaling_group.server.name
+     LoadBalancer     = var.alb.lb.id
   }
 }
 
-# Sending notification for CPU peak
+# Setting alarm for CPU peak
 resource "aws_cloudwatch_metric_alarm" "cpu_usage_alarm" {
   alarm_name          = "${var.namespace}-${var.project_name}-cpu-usage-alarm"
   comparison_operator = "GreaterThanOrEqualToThreshold"

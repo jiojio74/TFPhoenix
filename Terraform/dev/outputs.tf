@@ -14,3 +14,7 @@ output "alb" {
 output "security_group" {
   value = module.instance.security_group
 }
+
+output "asg_name" {
+  value = module.instance.asg_name
+}
