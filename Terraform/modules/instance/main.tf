@@ -188,8 +188,8 @@ resource "aws_cloudwatch_metric_alarm" "scale" {
   alarm_actions       = [aws_autoscaling_policy.scaling_up.arn]
   ok_actions          = [aws_autoscaling_policy.scaling_down.arn]
   dimensions          = {
-#    AutoScalingGroupName = aws_autoscaling_group.server.name
-     LoadBalancer     = var.alb.lb.id
+    AutoScalingGroupName = aws_autoscaling_group.server.name
+     LoadBalancer     = "app/web"
   }
 }
 
