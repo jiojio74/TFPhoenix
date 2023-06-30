@@ -36,3 +36,11 @@ In the following articles of the GitHub wiki, you will find:
 * [Notes](https://github.com/jiojio74/TFPhoenix/wiki) on how I proceeded with the implementation.
 * Documentation on how the [modules](https://github.com/jiojio74/TFPhoenix/wiki/Modules-documentation) work.
 * Possible [improvements](https://github.com/jiojio74/TFPhoenix/wiki/Improvements).
+
+# Requirements solutions:
+1. Automate the creation of the infrastructure and the setup of the application. Done using Terraform.
+2. Recover from crashes. Implement a method autorestart the service on crash. Done by configuring a service on the instance that restarts on failure.
+3. Backup the logs and database with rotation of 7 days. Done using DocumentDB's autobackup and the CloudWatch agent installed on the instances.
+4. Notify any CPU peak. Partially done with a CloudWatch alarm, missing the action to use Amazon SNS.
+5. Implements a CI/CD pipeline for the code. Implemented with folder-based logic.
+6. Scale when the number of request are greater than 100 req /min. Implemented using a CloudWatch alarm that monitors incoming requests to the load balancer.
