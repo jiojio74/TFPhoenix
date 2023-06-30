@@ -182,7 +182,7 @@ resource "aws_cloudwatch_metric_alarm" "scale" {
   evaluation_periods  = 1
   period              = 60
   metric_name         = "RequestCount"
-  threshold           = 10
+  threshold           = 100
   statistic           = "Sum"
   namespace           = "AWS/ApplicationELB"
   alarm_actions       = [aws_autoscaling_policy.scaling_up.arn]
