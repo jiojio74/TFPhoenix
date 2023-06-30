@@ -188,25 +188,25 @@ resource "aws_cloudwatch_metric_alarm" "scale" {
   alarm_actions       = [aws_autoscaling_policy.scaling_up.arn]
   ok_actions          = [aws_autoscaling_policy.scaling_down.arn]
   dimensions          = {
-    AutoScalingGroupName = aws_autoscaling_group.server.name
-     LoadBalancer     = "app/web"
+    LoadBalancer     = var.alb.lb.arn_suffix
   }
 }
 
 # Setting alarm for CPU peak
+# Note: This metric cannot be collected at a frequency lower than one per minute. 
 resource "aws_cloudwatch_metric_alarm" "cpu_usage_alarm" {
   alarm_name          = "${var.namespace}-${var.project_name}-cpu-usage-alarm"
   comparison_operator = "GreaterThanOrEqualToThreshold"
   evaluation_periods  = 1
-  period              = 10
+  period              = 60
   metric_name         = "CPUUtilization"
   namespace           = "AWS/EC2"
   threshold           = 80
   alarm_description   = "High CPU usage alarm"
-
+  statistic = "Maximum"
   dimensions = {
     AutoScalingGroupName = aws_autoscaling_group.server.name
   }
-  statistic = "Average"
+
 }
 

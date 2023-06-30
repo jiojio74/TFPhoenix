@@ -24,8 +24,10 @@ Once the project is cloned, use one of the terraform/dev, terraform/staging, ter
 * The project name if you want to reuse it for other Node.js applications that meet the same requirements
 * The GitHub URL of the Node.js app. This variable can be used to install development, staging, or production versions of the Phoenix app or other projects with the same requirements.
 * Then run:
-```cd terraform/[dev/staging/production]
-terraform apply```
+```
+cd terraform/[dev/staging/production]
+terraform apply
+```
 
 # Documentation
 In the following articles of the GitHub wiki, you will find:
