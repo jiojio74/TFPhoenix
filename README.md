@@ -28,6 +28,11 @@ Once the project is cloned, use one of the terraform/dev, terraform/staging, ter
 cd terraform/[dev/staging/production]
 terraform apply
 ```
+Use:
+```
+terraform output alb
+```
+to show the URL of the app.
 
 # Documentation
 In the following articles of the GitHub wiki, you will find:
